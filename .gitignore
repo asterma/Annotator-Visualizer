@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.python-version
+.venv/
+
+# Node / Electron
+node_modules/
+npm-debug.log*
+
+# Local runtime / generated artifacts
+*.log
+dist/
+build/
+
+# Editor / IDE
+.idea/
+.vscode/

@@ -1,0 +1,11 @@
+[project]
+name = "annotator-visualizer"
+version = "0.1.0"
+description = "Minimal dual-scene local visualizer for lane/od bag comparison"
+requires-python = ">=3.10"
+dependencies = [
+    "rosbags",
+]
+
+[tool.uv]
+package = false

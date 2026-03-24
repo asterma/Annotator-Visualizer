@@ -1,0 +1,58 @@
+{
+  "name": "annotator-visualizer",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron/main.js",
+  "description": "Desktop BEV visualizer for dual-bag comparison and single bag plus synced video review",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "server": "uv run server/server.py",
+    "dist": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.liangdao.annotator-visualizer",
+    "productName": "Annotator Visualizer",
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "public",
+        "to": "app/public"
+      },
+      {
+        "from": "server",
+        "to": "app/server"
+      },
+      {
+        "from": "scripts",
+        "to": "app/scripts"
+      },
+      {
+        "from": "pyproject.toml",
+        "to": "app/pyproject.toml"
+      },
+      {
+        "from": "uv.lock",
+        "to": "app/uv.lock"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "fileAssociations": [
+      {
+        "ext": "bag",
+        "name": "ROS Bag",
+        "description": "ROS bag data file",
+        "role": "Viewer"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^25.0.5"
+  }
+}

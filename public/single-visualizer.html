@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annotator Visualizer · Single View</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="loading-overlay">LOADING VISUALIZER</div>
+
+  <header id="status-bar">
+    <div class="status-left">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L18 10L10 18L2 10L10 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="10" cy="10" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="status-title">ANNOTATOR VISUALIZER</span>
+      <span class="status-divider"></span>
+      <span class="status-tag" id="status-mode">SINGLE VIEW</span>
+    </div>
+    <div class="status-center">
+      <div class="toolbar-actions single-toolbar-actions">
+        <div class="toolbar-group">
+          <button class="toolbar-btn primary" id="btn-load-scene">Load Lane Bag</button>
+          <button class="toolbar-btn danger" id="btn-clear-scene">Clear</button>
+        </div>
+        <div class="toolbar-group">
+          <a class="toolbar-btn" href="./visualizer.html">Dual View</a>
+        </div>
+      </div>
+    </div>
+    <div class="status-right">
+      <span class="status-meta" id="header-frame-id">FRM 0</span>
+      <span class="status-divider"></span>
+      <span class="status-meta" id="header-timestamp">00:00.00</span>
+    </div>
+  </header>
+
+  <main id="dashboard">
+    <section id="single-column">
+      <section id="single-bev-panel" class="panel single-panel">
+        <div class="panel-header">
+          <span class="panel-label">BEV SCENE</span>
+          <div class="panel-header-meta">
+            <span class="panel-file" id="single-panel-file">No bag loaded</span>
+            <span class="panel-badge left">LANE</span>
+          </div>
+        </div>
+        <div class="panel-body"><canvas id="single-bev-canvas"></canvas></div>
+        <div class="compare-info">
+          <span id="single-frame-id">FRM 0</span>
+          <span id="single-timestamp">0.00 s</span>
+          <span id="single-objects">0 obj</span>
+          <span id="single-lanes">0 lanes</span>
+        </div>
+      </section>
+
+      <section id="single-video-panel" class="panel single-panel">
+        <div class="panel-header">
+          <span class="panel-label">SYNC VIDEO</span>
+          <div class="panel-header-meta">
+            <span class="panel-file" id="video-panel-file">No video loaded</span>
+            <span class="panel-badge right">MP4</span>
+          </div>
+        </div>
+        <div class="panel-body video-panel-body">
+          <video id="scene-video" preload="metadata" playsinline muted></video>
+          <div id="video-placeholder">NO VIDEO LOADED</div>
+        </div>
+        <div class="compare-info">
+          <span id="video-time">0.00 s</span>
+          <span id="video-duration">0.00 s</span>
+          <span id="video-resolution">--</span>
+        </div>
+      </section>
+
+    </section>
+
+    <div class="resize-handle" id="single-resize-handle"></div>
+
+    <aside id="label-sidebar">
+      <div class="panel-header">
+        <span class="sidebar-section-title">SINGLE RUN</span>
+        <span class="label-count" id="single-label-count">READY</span>
+      </div>
+
+      <div id="label-form">
+        <span class="hint-note" id="single-frame-hint">Load one `_rf.bag`. The app infers the sibling `sync_image/*.mp4` file from the same parent session directory.</span>
+
+        <div class="form-field">
+          <label>LANE BAG</label>
+          <div class="info-value muted" id="info-single-bag-file">No bag loaded</div>
+        </div>
+
+        <div class="form-field">
+          <label>SYNC VIDEO</label>
+          <div class="info-value muted" id="info-single-video-file">No video loaded</div>
+        </div>
+
+        <div class="form-field">
+          <label>DATA STATUS</label>
+          <div class="info-value" id="info-single-data-status">Waiting for lane bag</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>FPS</label>
+            <div class="info-value" id="info-single-fps">--</div>
+          </div>
+          <div class="form-field">
+            <label>TOTAL FRAMES</label>
+            <div class="info-value" id="info-single-total-frames">--</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>LANE COUNTS</label>
+            <div class="info-value" id="info-single-counts">0 lanes · 0 objects</div>
+          </div>
+          <div class="form-field">
+            <label>VIDEO META</label>
+            <div class="info-value" id="info-single-video-meta">--</div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>LOAD TIMINGS</label>
+          <div class="info-value timings-value" id="info-single-load-timings">No timing data</div>
+        </div>
+      </div>
+
+      <div id="labels-list-wrap"></div>
+
+      <div id="sidebar-footer">
+        <span class="label-stats" id="single-label-stats">Single lane scene on the left, synchronized camera video on the right.</span>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="bottom-bar" class="single-bottom-bar">
+    <div id="controls">
+      <div class="controls-group">
+        <button id="btn-start" class="ctrl-btn" title="Skip to Start (Home)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M11 2L5 7L11 12" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="3" y1="2" x2="3" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button id="btn-prev" class="ctrl-btn" title="Previous Frame (←)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 3L5 7L9 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </button>
+        <button id="btn-play" class="ctrl-btn play-btn" title="Play / Pause (Space)">
+          <svg id="icon-play" width="16" height="16" viewBox="0 0 16 16"><path d="M4 2L13 8L4 14Z" fill="currentColor"/></svg>
+          <svg id="icon-pause" width="16" height="16" viewBox="0 0 16 16" style="display:none"><rect x="3" y="2" width="3.5" height="12" rx="0.5" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="0.5" fill="currentColor"/></svg>
+        </button>
+        <button id="btn-next" class="ctrl-btn" title="Next Frame (→)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M5 3L9 7L5 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </button>
+        <button id="btn-end" class="ctrl-btn" title="Skip to End (End)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 2L9 7L3 12" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="11" y1="2" x2="11" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+      <div class="controls-frame" id="frame-display">0000 / 0000</div>
+      <div class="controls-time">
+        <span id="time-display">00:00.00</span>
+      </div>
+      <div class="controls-group">
+        <div class="speed-selector">
+          <button class="speed-opt" data-speed="0.25">0.25x</button>
+          <button class="speed-opt" data-speed="0.5">0.5x</button>
+          <button class="speed-opt active" data-speed="1">1x</button>
+          <button class="speed-opt" data-speed="2">2x</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tracks-container">
+      <div id="playhead"></div>
+      <div id="timeline-bar">
+        <div class="track-label-col">SYNC</div>
+        <div id="timeline-track">
+          <input type="range" id="timeline" min="0" max="1000" value="0">
+        </div>
+      </div>
+
+      <div id="ruler-row">
+        <div class="track-label-col">FRAME</div>
+        <div class="ruler-canvas-wrap"><canvas id="ruler-canvas"></canvas></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="scene-loader.js"></script>
+  <script src="bev-renderer.js"></script>
+  <script src="single-visualizer-app.js"></script>
+</body>
+</html>

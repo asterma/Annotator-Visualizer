@@ -1,82 +1,103 @@
 # Annotator Visualizer
 
-This directory is a minimal local app that reproduces the current dual-scene functionality of `public/visualizer.html` without the rest of the annotator stack.
+Desktop review tool for raw ROS bag data.
 
-## What it does
+It provides two workflows:
 
-- Load a left and right `lane_rosbag/*.bag`
-- Infer the matching `od/*.bag` automatically by filename
-- Convert each bag pair to an in-memory scene payload
-- Render synchronized dual BEV views
-- Share one playback timeline across both sides
-- Show `vx / vy / ax / ay` overlays
-- Sync pan / zoom / reset across both BEV canvases
+- `Dual View`: compare two `lane_rosbag/*_sync_rf.bag` files side by side in synchronized BEV canvases
+- `Single View`: inspect one `lane_rosbag/*_sync_rf.bag` together with its synchronized `sync_image/*.mp4`
 
-## Why this shape
+## Stack
 
-From first principles, the app only needs two layers:
+- `Electron` for native file picking and desktop packaging
+- `Python` for serving assets and converting ROS bag data
+- `Plain browser JavaScript` for rendering and playback
 
-1. Frontend viewer
-   - dual BEV panes
-   - shared playback and signal charts
-2. One conversion endpoint
-   - accept `lane_bag`
-   - find matching `od_bag`
-   - return one scene payload per side
+## Repository Layout
 
-Everything else from the main repo was removed on purpose.
-
-## Structure
-
-- `public/`: standalone frontend
-- `server/server.py`: minimal static server + `/api/convert-bags`
-- `scripts/export_bag_to_json.py`: bag-to-scene conversion
+- `electron/`
+  Desktop shell and preload bridge.
+- `public/`
+  Frontend entry pages and rendering logic.
+- `server/server.py`
+  Static file server, bag conversion APIs, and local video streaming.
+- `scripts/export_bag_to_json.py`
+  ROS bag parsing and scene construction helpers.
+- `pyproject.toml`
+  Python dependency definition managed by `uv`.
+- `package.json`
+  Electron entrypoint and npm scripts.
 
 ## Run
 
-Install Python dependency:
+```bash
+uv sync
+npm install
+npm run dev
+```
+
+The desktop app starts a local server and opens the single-view workflow by default.
+
+## Open `.bag` Files From Finder
+
+The packaged macOS app registers itself as a viewer for `.bag` files.
+
+Build the app:
 
 ```bash
-pip install -r requirements.txt
+npm run dist
 ```
 
-Point the app to your raw data root. It must contain paths like:
+Then install the generated `Annotator Visualizer.app` into `/Applications` and use Finder:
+
+- Right click a `.bag` file
+- Choose `Open With`
+- Select `Annotator Visualizer`
+
+When launched this way, the app opens directly into `Single View` and auto-loads the selected bag.
+
+Notes for packaged app startup:
+
+- The app still launches the Python backend through `uv`
+- `uv` must be installed on the Mac, not only available inside one terminal session
+- If Finder launches the app with a minimal `PATH`, the app falls back to common install locations such as `/opt/homebrew/bin/uv` and `~/.local/bin/uv`
+
+## Modes
+
+### Dual View
+
+Choose two lane bags:
 
 ```text
-BMW/raw/.../lane_rosbag/*.bag
-BMW/raw/.../od/*.bag
+.../lane_rosbag/xxx_sync_rf.bag
+.../lane_rosbag/yyy_sync_rf.bag
 ```
 
-Start:
-
-```bash
-VLA_DATA_ROOT=/path/to/data npm run dev
-```
-
-Open:
+Each file is mapped to its sibling OD bag:
 
 ```text
-http://127.0.0.1:3030/
+.../od/xxx_sync_od.bag
+.../od/yyy_sync_od.bag
 ```
 
-## Matching rule
+### Single View
 
-When you load a lane bag named:
+Choose one lane bag:
 
 ```text
-xxx_sync_rf.bag
+.../lane_rosbag/xxx_sync_rf.bag
 ```
 
-the backend searches `VLA_DATA_ROOT` for:
+It is paired with the sibling video directory:
 
 ```text
-lane_rosbag/xxx_sync_rf.bag
+.../sync_image/*.mp4
 ```
 
-and maps it to:
+The matcher first tries exact stem matching and then falls back to normalized base-name matching for camera-specific suffixes such as `_vls128_sync_image`.
 
-```text
-od/xxx_sync_od.bag
-```
+## Notes
 
-The filename must be unique under `VLA_DATA_ROOT`.
+- The lane bag filename must end with `_sync_rf.bag`
+- The app reads raw bag data directly and progressively fills the scene in single-view mode
+- Compatible MP4 fallback uses `ffmpeg` when the original video stream cannot be decoded by Chromium

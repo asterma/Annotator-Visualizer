@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annotator Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="loading-overlay">LOADING VISUALIZER</div>
+
+  <header id="status-bar">
+    <div class="status-left">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L18 10L10 18L2 10L10 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="10" cy="10" r="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="status-title">ANNOTATOR VISUALIZER</span>
+      <span class="status-divider"></span>
+      <span class="status-tag" id="status-mode">DUAL BAG</span>
+    </div>
+    <div class="status-center">
+      <div class="toolbar-actions">
+        <div class="toolbar-group">
+          <button class="toolbar-btn primary" id="btn-load-left-bag">Load Left Bag</button>
+          <button class="toolbar-btn danger" id="btn-clear-left">Clear Left</button>
+        </div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn primary" id="btn-load-right-bag">Load Right Bag</button>
+          <button class="toolbar-btn danger" id="btn-clear-right">Clear Right</button>
+        </div>
+        <div class="toolbar-group">
+          <a class="toolbar-btn" href="./single-visualizer.html">Single View</a>
+        </div>
+      </div>
+    </div>
+    <div class="status-right">
+      <span class="status-meta" id="header-frame-id">FRM 0</span>
+      <span class="status-divider"></span>
+      <span class="status-meta" id="header-timestamp">L 0.00s | R 0.00s</span>
+    </div>
+  </header>
+
+  <main id="dashboard">
+    <section id="compare-column">
+      <section id="bev-panel-left" class="panel compare-panel">
+        <div class="panel-header">
+          <span class="panel-label">LEFT SCENE</span>
+          <div class="panel-header-meta">
+            <span class="panel-file" id="left-panel-file">No bag loaded</span>
+            <span class="panel-badge left">LEFT</span>
+          </div>
+        </div>
+        <div class="panel-body"><canvas id="bev-canvas-left"></canvas></div>
+        <div class="compare-info">
+          <span id="left-frame-id">FRM 0</span>
+          <span id="left-timestamp">0.00 s</span>
+          <span id="left-objects">0 obj</span>
+          <span id="left-lanes">0 lanes</span>
+        </div>
+      </section>
+
+      <section id="bev-panel-right" class="panel compare-panel">
+        <div class="panel-header">
+          <span class="panel-label">RIGHT SCENE</span>
+          <div class="panel-header-meta">
+            <span class="panel-file" id="right-panel-file">No bag loaded</span>
+            <span class="panel-badge right">RIGHT</span>
+          </div>
+        </div>
+        <div class="panel-body"><canvas id="bev-canvas-right"></canvas></div>
+        <div class="compare-info">
+          <span id="right-frame-id">FRM 0</span>
+          <span id="right-timestamp">0.00 s</span>
+          <span id="right-objects">0 obj</span>
+          <span id="right-lanes">0 lanes</span>
+        </div>
+      </section>
+
+      <div class="load-progress-card compare-progress-card">
+        <div class="load-progress-head">
+          <span>LEFT LOAD</span>
+          <span>0%</span>
+        </div>
+        <div class="load-progress-track">
+          <div class="load-progress-bar" id="left-load-progress-bar"></div>
+        </div>
+        <span class="load-progress-inline-value" id="left-load-progress-value">0%</span>
+        <div class="load-progress-state" id="left-load-status">Idle</div>
+        <div class="load-progress-meta">
+          <span id="left-load-kind">No source</span>
+          <span id="left-load-extra">Waiting</span>
+        </div>
+      </div>
+
+      <div class="load-progress-card compare-progress-card">
+        <div class="load-progress-head">
+          <span>RIGHT LOAD</span>
+          <span>0%</span>
+        </div>
+        <div class="load-progress-track">
+          <div class="load-progress-bar" id="right-load-progress-bar"></div>
+        </div>
+        <span class="load-progress-inline-value" id="right-load-progress-value">0%</span>
+        <div class="load-progress-state" id="right-load-status">Idle</div>
+        <div class="load-progress-meta">
+          <span id="right-load-kind">No source</span>
+          <span id="right-load-extra">Waiting</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="resize-handle" id="resize-handle-1"></div>
+
+    <aside id="label-sidebar">
+      <div class="panel-header">
+        <span class="sidebar-section-title">COMPARISON</span>
+        <span class="label-count" id="label-count">READY</span>
+      </div>
+
+      <div id="label-form">
+        <span class="hint-note" id="vla-frame-hint">Load left and right lane bags. The matching od bag is inferred from the lane bag path by checking the sibling od folder one level above.</span>
+
+        <div class="form-field">
+          <label>LEFT LANE BAG</label>
+          <div class="info-value muted" id="info-left-bag-file">No bag loaded</div>
+        </div>
+
+        <div class="form-field">
+          <label>RIGHT LANE BAG</label>
+          <div class="info-value muted" id="info-right-bag-file">No bag loaded</div>
+        </div>
+
+        <div class="form-field">
+          <label>DATA STATUS</label>
+          <div class="info-value" id="info-data-status">Waiting for left/right lane bags</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>LEFT FPS</label>
+            <div class="info-value" id="info-left-fps">--</div>
+          </div>
+          <div class="form-field">
+            <label>RIGHT FPS</label>
+            <div class="info-value" id="info-right-fps">--</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>LEFT TOTAL FRAMES</label>
+            <div class="info-value" id="info-left-total-frames">--</div>
+          </div>
+          <div class="form-field">
+            <label>RIGHT TOTAL FRAMES</label>
+            <div class="info-value" id="info-right-total-frames">--</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>LEFT COUNTS</label>
+            <div class="info-value" id="info-left-counts">0 lanes · 0 objects</div>
+          </div>
+          <div class="form-field">
+            <label>RIGHT COUNTS</label>
+            <div class="info-value" id="info-right-counts">0 lanes · 0 objects</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label>LEFT LOAD TIMINGS</label>
+            <div class="info-value timings-value" id="info-left-load-timings">No timing data</div>
+          </div>
+          <div class="form-field">
+            <label>RIGHT LOAD TIMINGS</label>
+            <div class="info-value timings-value" id="info-right-load-timings">No timing data</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="labels-list-wrap">
+      </div>
+
+      <div id="sidebar-footer">
+        <span class="label-stats" id="label-stats">Shared frame playback for two independent bag-derived scenes</span>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="bottom-bar">
+    <div id="controls">
+      <div class="controls-group">
+        <button id="btn-start" class="ctrl-btn" title="Skip to Start (Home)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M11 2L5 7L11 12" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="3" y1="2" x2="3" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <button id="btn-prev" class="ctrl-btn" title="Previous Frame (←)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M9 3L5 7L9 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </button>
+        <button id="btn-play" class="ctrl-btn play-btn" title="Play / Pause (Space)">
+          <svg id="icon-play" width="16" height="16" viewBox="0 0 16 16"><path d="M4 2L13 8L4 14Z" fill="currentColor"/></svg>
+          <svg id="icon-pause" width="16" height="16" viewBox="0 0 16 16" style="display:none"><rect x="3" y="2" width="3.5" height="12" rx="0.5" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="0.5" fill="currentColor"/></svg>
+        </button>
+        <button id="btn-next" class="ctrl-btn" title="Next Frame (→)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M5 3L9 7L5 11" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </button>
+        <button id="btn-end" class="ctrl-btn" title="Skip to End (End)">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 2L9 7L3 12" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="11" y1="2" x2="11" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+      <div class="controls-frame" id="frame-display">0000 / 0000</div>
+      <div class="controls-time">
+        <span id="time-display">L 00:00.00 | R 00:00.00</span>
+      </div>
+      <div class="controls-group">
+        <div class="speed-selector">
+          <button class="speed-opt" data-speed="0.25">0.25x</button>
+          <button class="speed-opt" data-speed="0.5">0.5x</button>
+          <button class="speed-opt active" data-speed="1">1x</button>
+          <button class="speed-opt" data-speed="2">2x</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tracks-container">
+      <div id="playhead"></div>
+      <div id="timeline-bar">
+        <div class="track-label-col"></div>
+        <div id="timeline-track">
+          <input type="range" id="timeline" min="0" max="1000" value="0">
+        </div>
+      </div>
+
+      <div id="ruler-row">
+        <div class="track-label-col"></div>
+        <div class="ruler-canvas-wrap"><canvas id="ruler-canvas"></canvas></div>
+      </div>
+
+      <div id="keyframe-track">
+        <div class="track-label-col"></div>
+        <div class="track-content-col">
+          <div id="label-ranges-empty"></div>
+        </div>
+      </div>
+
+      <div class="signal-row">
+        <div class="track-label-col">
+          <span>Vx</span>
+          <span class="signal-value" id="sv-vx">L 0.00 | R 0.00</span>
+        </div>
+        <div class="signal-canvas-wrap"><canvas id="signal-vx"></canvas></div>
+      </div>
+      <div class="signal-row">
+        <div class="track-label-col">
+          <span>Vy</span>
+          <span class="signal-value" id="sv-vy">L 0.00 | R 0.00</span>
+        </div>
+        <div class="signal-canvas-wrap"><canvas id="signal-vy"></canvas></div>
+      </div>
+      <div class="signal-row">
+        <div class="track-label-col">
+          <span>Ax</span>
+          <span class="signal-value" id="sv-ax">L 0.00 | R 0.00</span>
+        </div>
+        <div class="signal-canvas-wrap"><canvas id="signal-ax"></canvas></div>
+      </div>
+      <div class="signal-row">
+        <div class="track-label-col">
+          <span>Ay</span>
+          <span class="signal-value" id="sv-ay">L 0.00 | R 0.00</span>
+        </div>
+        <div class="signal-canvas-wrap"><canvas id="signal-ay"></canvas></div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="bev-renderer.js?v=1"></script>
+  <script src="scene-loader.js?v=2"></script>
+  <script src="visualizer-app.js?v=2"></script>
+</body>
+</html>
